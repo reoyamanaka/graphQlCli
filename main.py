@@ -22,10 +22,10 @@ class Query(graphene.ObjectType):
 
 schema = graphene.Schema(query = Query)
 
-def customQuery(option):
+def customQuery(option, show = length):
     return """
     {
-        %s {
+        %s(first: %d) {
             first
             last
             lastLogin
@@ -39,9 +39,12 @@ def main():
         if firstAction == "1":
             print("Showing all users...\n")
             query = customQuery("allUsers")
-        result = schema.execute(query)
-        items = dict(result.data.items())
-        print(json.dumps(items, indent = 4))
+            break
+        elif firstAction == "2":
+            print("Showing some users...\n")
+    result = schema.execute(query)
+    items = dict(result.data.items())
+    print(json.dumps(items, indent = 4))
 
                     
 
