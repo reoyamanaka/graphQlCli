@@ -14,9 +14,9 @@ usersList = [
 ]
 
 class Query(graphene.ObjectType):
-    all_users = graphene.List(User, showCount = graphene.Int())
+    users = graphene.List(User, showCount = graphene.Int())
     
-    def resolve_all_users(self, info, showCount):
+    def resolve_users(self, info, showCount):
         return usersList[:showCount]
 
 def customQuery(option, show = len(usersList)):
@@ -35,15 +35,24 @@ def main():
     while True:
         firstAction = input("What would you like to do?\n1) See all users\n2) See some users\n")
         if firstAction == "1":
-            query = customQuery("allUsers")
-            print(query)
+            query = customQuery("users")
             break
-
+        elif firstAction == "2": 
+            numOptions = range(1, len(usersList) + 1)
+            optionsString = ""
+            for i in numOptions:
+                optionsString += str(i) + "\n"
+            while True:
+                num = int(input("How many users would you like to show?\n%s"%optionsString))
+                if num in numOptions:
+                    query = customQuery("users", num)
+                    break
+                else:
+                    print("Invalid selection.\n")
+            break
     result = schema.execute(query)
     items = dict(result.data.items())
     print(json.dumps(items, indent = 4))
-    #break
-                    
 
 if __name__ == "__main__":
     main()
