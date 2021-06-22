@@ -2,8 +2,7 @@ import graphene
 from datetime import datetime
 import json
 
-class User(graphene.ObjectType, first = graphene.Int()):
-    id = graphene.ID()
+class User(graphene.ObjectType):
     first = graphene.String()
     last = graphene.String()
     last_login = graphene.DateTime()
@@ -15,37 +14,35 @@ usersList = [
 ]
 
 class Query(graphene.ObjectType):
-    all_users = graphene.List(User)
+    all_users = graphene.List(User, showCount = graphene.Int())
     
-    def resolve_all_users(self, info):
-        return usersList
+    def resolve_all_users(self, info, showCount):
+        return usersList[:showCount]
 
-schema = graphene.Schema(query = Query)
-
-def customQuery(option, show = length):
+def customQuery(option, show = len(usersList)):
     return """
     {
-        %s(first: %d) {
+        %s(showCount: %d) {
             first
             last
             lastLogin
         }
     }
-    """%option
+    """%(option, show)
 
 def main():
+    schema = graphene.Schema(query = Query)
     while True:
         firstAction = input("What would you like to do?\n1) See all users\n2) See some users\n")
         if firstAction == "1":
-            print("Showing all users...\n")
             query = customQuery("allUsers")
+            print(query)
             break
-        elif firstAction == "2":
-            print("Showing some users...\n")
+
     result = schema.execute(query)
     items = dict(result.data.items())
     print(json.dumps(items, indent = 4))
-
+    #break
                     
 
 if __name__ == "__main__":
