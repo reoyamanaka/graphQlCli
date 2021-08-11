@@ -2,10 +2,11 @@ import graphene
 from datetime import datetime
 import json
 
+
 class User(graphene.ObjectType):
     first = graphene.String()
     last = graphene.String()
-    last_login = graphene.DateTime()
+    last_login = graphene.DateTime(required = False)
 
 usersList = [
     User(first = "Reo", last = "Yamanaka", last_login = datetime.now()),
@@ -13,11 +14,29 @@ usersList = [
     User(first = "Livia", last = "Jackson", last_login = datetime.now())
 ]
 
+
 class Query(graphene.ObjectType):
     users = graphene.List(User, showCount = graphene.Int())
     
     def resolve_users(self, info, showCount):
         return usersList[:showCount]
+
+
+class CreateUser(graphene.Mutation):
+    
+    class Arguments:
+        username = graphene.String()
+
+    user = graphene.Field(User)
+
+    def mutate(self, info, username):
+        user = User(username = username)
+        return CreateUser(user = user)
+
+
+class Mutations(grpahene.ObjectType):
+    create_user = CreateUser.Field()
+
 
 def customQuery(option, show = len(usersList)):
     return """
@@ -33,7 +52,7 @@ def customQuery(option, show = len(usersList)):
 def main():
     schema = graphene.Schema(query = Query)
     while True:
-        firstAction = input("What would you like to do?\n1) See all users\n2) See some users\n")
+        firstAction = input("What would you like to do?\n1) See all users\n2) See some users\n3) Create a new user\n")
         if firstAction == "1":
             query = customQuery("users")
             break
@@ -50,6 +69,15 @@ def main():
                 else:
                     print("Invalid selection.\n")
             break
+        elif firstAction == "3":
+            while True:
+                newFirstname = input("Enter first name of new user: ")
+                newLastname = input("Enter last name of new user: ")
+                if newFirstname.isalpha() and newLastname.isalpha():
+                    print("validations passed.")
+                    break
+                else:
+                    print("Invalid entry/entries.\n")
     result = schema.execute(query)
     items = dict(result.data.items())
     print(json.dumps(items, indent = 4))
